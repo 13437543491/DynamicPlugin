@@ -1,0 +1,8 @@
+ext {
+    //版本信息配置
+    version = [
+            "compileSdkVersion": 31,
+            "minSdkVersion"    : 19,
+            "targetSdkVersion" : 31,
+    ]
+}
