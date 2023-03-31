@@ -116,6 +116,7 @@ public final class InstrumentationProxy extends Instrumentation {
 
     @Override
     public void callActivityOnDestroy(Activity activity) {
+        PluginManager.getInstance().activityDestroy(activity);
         mBase.callActivityOnDestroy(activity);
     }
 
@@ -135,6 +136,10 @@ public final class InstrumentationProxy extends Instrumentation {
             }
         } else {
             activity = PluginManager.getInstance().resolveActivity(component);
+        }
+
+        if (activity == null) {
+            return;
         }
 
         String activityClassName = component.getClassName();

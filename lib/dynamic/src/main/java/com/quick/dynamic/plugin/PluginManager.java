@@ -1,5 +1,6 @@
 package com.quick.dynamic.plugin;
 
+import android.app.Activity;
 import android.app.ActivityThread;
 import android.app.ResourcesManager;
 import android.content.BroadcastReceiver;
@@ -47,6 +48,9 @@ public class PluginManager implements Runnable {
     private static final String PACKAGE_NAME = PluginManager.class.getPackage().getName();
     private static final String STUB_ACTIVITY_STANDARD = PACKAGE_NAME + ".A";
     private static final String STUB_ACTIVITY_STANDARD_TRANSLUCENT = STUB_ACTIVITY_STANDARD + '1';
+    private static final String STUB_ACTIVITY_SINGLE_TOP = PACKAGE_NAME + ".B";
+    private static final String STUB_ACTIVITY_SINGLE_TASK = PACKAGE_NAME + ".C";
+    private static final String STUB_ACTIVITY_SINGLE_INSTANCE = PACKAGE_NAME + ".D";
     private static final PluginManager sInstance = new PluginManager();
 
     public static PluginManager getInstance() {
@@ -58,6 +62,10 @@ public class PluginManager implements Runnable {
     private final Map<String, PluginApk> mApkList = new HashMap<>();
 
     private final LinkedBlockingQueue<ParserTask> mTaskList = new LinkedBlockingQueue<>();
+
+    private int usedSingleTopCount;
+    private int usedSingleTaskCount;
+    private int usedSingleInstanceCount;
 
     private PluginManager() {
         new Thread(this).start();
@@ -170,35 +178,68 @@ public class PluginManager implements Runnable {
     public String dispatchStubActivity(PackageParser.Activity activity) {
         ActivityInfo activityInfo = activity.info;
 
-        Resources.Theme theme = ActivityThread.currentApplication().getResources().newTheme();
-        theme.applyStyle(activityInfo.getThemeResource(), true);
-        TypedArray sa = theme.obtainStyledAttributes(
-                new int[]{android.R.attr.windowIsTranslucent});
-        boolean windowIsTranslucent = sa.getBoolean(0, false);
-        sa.recycle();
-
+        String result;
         switch (activityInfo.launchMode) {
             case ActivityInfo.LAUNCH_MULTIPLE: {
+                Resources.Theme theme = ActivityThread.currentApplication().getResources().newTheme();
+                theme.applyStyle(activityInfo.getThemeResource(), true);
+                TypedArray sa = theme.obtainStyledAttributes(
+                        new int[]{android.R.attr.windowIsTranslucent});
+                boolean windowIsTranslucent = sa.getBoolean(0, false);
+                sa.recycle();
                 return windowIsTranslucent ? STUB_ACTIVITY_STANDARD_TRANSLUCENT : STUB_ACTIVITY_STANDARD;
             }
             case ActivityInfo.LAUNCH_SINGLE_TOP: {
-
+                if (usedSingleTopCount >= 5) {
+                    throw new RuntimeException("usedCount=>" + usedSingleTopCount);
+                }
+                result = STUB_ACTIVITY_SINGLE_TOP + usedSingleTopCount;
+                usedSingleTopCount++;
                 break;
             }
             case ActivityInfo.LAUNCH_SINGLE_TASK: {
-
+                if (usedSingleTaskCount >= 5) {
+                    throw new RuntimeException("usedCount=>" + usedSingleTaskCount);
+                }
+                result = STUB_ACTIVITY_SINGLE_TASK + usedSingleTaskCount;
+                usedSingleTaskCount++;
                 break;
             }
             case ActivityInfo.LAUNCH_SINGLE_INSTANCE: {
-
+                if (usedSingleInstanceCount >= 5) {
+                    throw new RuntimeException("usedCount=>" + usedSingleInstanceCount);
+                }
+                result = STUB_ACTIVITY_SINGLE_INSTANCE + usedSingleInstanceCount;
+                usedSingleInstanceCount++;
                 break;
             }
-
             default:
-                break;
+                throw new RuntimeException("launchMode=>" + activityInfo.launchMode);
         }
 
-        return "";
+        return result;
+    }
+
+    public void activityDestroy(Activity activity) {
+        ActivityInfo activityInfo = PluginManager.getInstance().getActivityInfo(activity.getClass().getName());
+        if (activityInfo == null || activityInfo.launchMode == ActivityInfo.LAUNCH_MULTIPLE) {
+            return;
+        }
+
+        switch (activityInfo.launchMode) {
+            case ActivityInfo.LAUNCH_SINGLE_TOP: {
+                usedSingleTopCount--;
+                break;
+            }
+            case ActivityInfo.LAUNCH_SINGLE_TASK: {
+                usedSingleTaskCount--;
+                break;
+            }
+            case ActivityInfo.LAUNCH_SINGLE_INSTANCE: {
+                usedSingleInstanceCount--;
+                break;
+            }
+        }
     }
 
     public ActivityInfo getActivityInfo(String name) {

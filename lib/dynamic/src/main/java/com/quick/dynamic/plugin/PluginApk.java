@@ -12,5 +12,5 @@ public class PluginApk {
     public ApplicationInfo applicationInfo;
     public ArrayList<PackageParser.Activity> activities;
     public ArrayList<PackageParser.Activity> receivers;
-    public  ArrayList<PackageParser.Service> services;
+    public ArrayList<PackageParser.Service> services;
 }

@@ -3,12 +3,10 @@ package com.quick.dynamic;
 import android.app.ActivityThread;
 import android.app.Application;
 import android.content.Context;
-import android.webkit.WebView;
 
 import com.quick.dynamic.plugin.PluginManager;
+
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Dynamic {
 

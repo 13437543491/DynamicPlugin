@@ -1,9 +1,7 @@
 package com.quick.plugin;
 
 import android.app.Activity;
-import android.app.Service;
 import android.content.ComponentName;
-import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -16,7 +14,6 @@ import com.quick.dynamic.OnInstallListener;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 
 public class MainActivity extends Activity {
@@ -28,8 +25,21 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        File tempFile = new File("/storage/emulated/0/2222.apk");
-        Log.e("yangyangyang", "exists==>" + tempFile.exists());
+
+    }
+
+    public void installPlugin(View view) {
+        File pluginDirPath = new File(getFilesDir(), "plugin");
+        File tempFile = new File(pluginDirPath, "plugin.apk");
+        if (tempFile.exists()) {
+            tempFile.delete();
+        }
+
+        try {
+            copyFileWithStream(getAssets().open("plugin.apk"), tempFile.getAbsolutePath());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         Dynamic.installApk(tempFile, new OnInstallListener() {
             @Override
