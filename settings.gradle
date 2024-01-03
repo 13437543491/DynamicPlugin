@@ -1,0 +1,5 @@
+rootProject.name = "DynamicPlugin"
+include ':app'
+include ':lib', ':lib:android', ':lib:dynamic'
+include ':plugin', ':plugin:plugin1'
+//include ':RedIdChange'

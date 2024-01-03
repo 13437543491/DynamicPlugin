@@ -1,0 +1,39 @@
+apply from: "config.gradle"
+
+buildscript {
+    repositories {
+        google()
+        jcenter()
+        maven {
+            url uri('annotation_repo')
+        }
+        maven { url 'https://jitpack.io' }
+
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.3.2'
+        classpath 'com.quick.resid:RedIdChange:1.0.0'
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        jcenter()
+        maven { url 'https://jitpack.io' }
+
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+
+task makePluginDebug(type: Copy, dependsOn: ':plugin:plugin1:assembleRelease') {
+    description '编译plugin插件'
+    print "编译plugin插件"
+    from "plugin/plugin1/build/outputs/apk/release"
+    include "plugin1-release.apk"
+    into "app/src/main/assets"
+    rename("plugin1-release.apk", "plugin.apk")
+}
